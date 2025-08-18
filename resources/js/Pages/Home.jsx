@@ -3,10 +3,28 @@ import 'leaflet/dist/leaflet.css';
 import axios from "axios";
 import { useEffect, useState } from 'react';
 
+import L from 'leaflet';
+import 'leaflet/dist/leaflet.css';
+import iconUrl from 'leaflet/dist/images/marker-icon.png';
+import iconRetinaUrl from 'leaflet/dist/images/marker-icon-2x.png';
+import shadowUrl from 'leaflet/dist/images/marker-shadow.png';
+
 function Home() {
   const [data, setData] = useState([]);
   const [position, setPosition] = useState([-7.8166, 112.0114]);
   const [locationName, setLocationName] = useState("");
+
+  let DefaultIcon = L.icon({
+    iconUrl: iconUrl,
+    iconRetinaUrl: iconRetinaUrl,
+    shadowUrl: shadowUrl,
+    iconSize: [25, 41],
+    iconAnchor: [12, 41],
+    popupAnchor: [1, -34],
+    shadowSize: [41, 41]
+  });
+
+  L.Marker.prototype.options.icon = DefaultIcon;
 
   useEffect(() => {
     axios.get("https://imas-58e85-default-rtdb.asia-southeast1.firebasedatabase.app/data.json")
