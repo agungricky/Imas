@@ -19,6 +19,7 @@
     <!-- Core theme CSS (includes Bootstrap)-->
     <link href="{{ asset('css/styles.css') }}" rel="stylesheet" />
 
+    @routes
     @viteReactRefresh
     @vite('resources/js/app.jsx')
 </head>

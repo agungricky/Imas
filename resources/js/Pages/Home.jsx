@@ -2,66 +2,73 @@ import { MapContainer, TileLayer, Marker, Popup, useMapEvents } from 'react-leaf
 import 'leaflet/dist/leaflet.css';
 import axios from "axios";
 import { useEffect, useState } from 'react';
-
+import Swal from 'sweetalert2';
 import L from 'leaflet';
-import iconUrl from 'leaflet/dist/images/marker-icon.png';
-import iconRetinaUrl from 'leaflet/dist/images/marker-icon-2x.png';
-import shadowUrl from 'leaflet/dist/images/marker-shadow.png';
+import { useForm } from '@inertiajs/react';
 
-
-let DefaultIcon = L.icon({
-  iconUrl: iconUrl,
-  iconRetinaUrl: iconRetinaUrl,
-  shadowUrl: shadowUrl,
-  iconSize: [25, 41],
-  iconAnchor: [12, 41],
-  popupAnchor: [1, -34],
-  shadowSize: [41, 41]
+export const DefaultIcon = L.icon({
+  iconUrl: `${import.meta.env.BASE_URL}assets/lokasi.png`,
+  iconSize: [40, 40], 
+  iconAnchor: [20, 40],
 });
-
 L.Marker.prototype.options.icon = DefaultIcon;
 
 function Home() {
-  const [data, setData] = useState([]);
+  const [dataSensor, setDataSensor] = useState({});
   const [position, setPosition] = useState([-7.8166, 112.0114]);
   const [locationName, setLocationName] = useState("");
+  const [savelokasi, setSavelokasi] = useState([]);
+
+  const { data, setData, post, processing } = useForm({
+    name: '',
+    latitude: '',
+    longitude: '',
+    status: dataSensor.partikel || '',
+  });
 
   useEffect(() => {
     axios.get("https://imas-58e85-default-rtdb.asia-southeast1.firebasedatabase.app/data.json")
       .then((response) => {
-        setData(response.data);
-      })
-      .catch((error) => {
-        console.error("Failed to fetch projects:", error);
+        setDataSensor(response.data);
       });
   }, []);
+
+  useEffect(() => {
+    axios.get(route('lokasi.index'))
+      .then((lokasisaved) => {
+        console.log(lokasisaved.data);
+        setSavelokasi(lokasisaved.data);
+      });
+  }, [data]);
 
   function LocationMarker() {
     useMapEvents({
       click(e) {
         const lat = e.latlng.lat;
         const lng = e.latlng.lng;
+        const status_sensor = dataSensor.partikel;
         setPosition([lat, lng]);
         setLocationName("");
-        fetchLocationName(lat, lng);
+        fetchLocationName(lat, lng, status_sensor);
       },
     });
 
-    const fetchLocationName = async (lat, lng) => {
+    const fetchLocationName = async (lat, lng, status_sensor ) => {
       try {
         const response = await axios.get(
           `https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lng}&format=json`
         );
         setLocationName(response.data.display_name);
+        setData({
+          name: response.data.display_name,
+          latitude: lat,
+          longitude: lng,
+          status: status_sensor
+        });
       } catch (error) {
         console.error("Failed to fetch location name:", error);
         setLocationName("Nama lokasi tidak ditemukan");
       }
-    };
-
-    const handleSave = () => {
-      console.log("Location saved:", data);
-      // bisa kirim ke Firebase
     };
 
     return (
@@ -70,8 +77,12 @@ function Home() {
           <div>
             <strong>Lokasi yang dipilih:</strong>
             <p>{locationName || "Memuat nama lokasi..."}</p>
-            <button className="btn btn-primary btn-sm" onClick={handleSave}>
-              📌 Save Location
+            <button
+              className="btn btn-primary btn-sm"
+              onClick={handleSave}
+              disabled={processing}
+            >
+              {processing ? "⏳ Saving..." : "📌 Save Location"}
             </button>
           </div>
         </Popup>
@@ -79,27 +90,59 @@ function Home() {
     );
   }
 
+  const handleSave = () => {
+    if (!locationName || !position[0] || !position[1] || !dataSensor.partikel) {
+      Swal.fire({
+        title: 'Warning!',
+        text: 'Data tidak lengkap. Pastikan lokasi dan sensor tersedia.',
+        icon: 'warning',
+        confirmButtonText: 'Ok'
+      });
+      return;
+    }
+
+    post(route('save.location'), {
+      preserveScroll: true,
+      onSuccess: () => {
+        Swal.fire({
+          title: 'Success!',
+          text: 'Lokasi berhasil disimpan.',
+          icon: 'success',
+          confirmButtonText: 'Ok'
+        });
+
+        setData("");
+      },
+      onError: () => {
+        Swal.fire({
+          title: 'Error!',
+          text: 'Gagal menyimpan lokasi.',
+          icon: 'error',
+          confirmButtonText: 'Ok'
+        });
+      }
+    });
+  };
+
   return (
     <>
       <main className="flex-shrink-0">
         <header className="pt-5">
           <div className="container px-5 pb-5">
-            {/* Bagian Header */}
             <div className="row gx-5 align-items-center">
               <div className="col-xxl-5">
                 <div className="text-center text-xxl-start">
                   <div className="badge bg-gradient-primary-to-secondary text-white mb-4">
-                    <div className="text-uppercase">Inovasi &middot; Tekhnologi &middot; Ekologi</div>
+                    <div className="text-uppercase">Inovasi · Teknologi · Ekologi</div>
                   </div>
-                  <h1 className="display-3 fw-bolder">
-                    <span className="text-gradient d-inline">Efisiensi Monitoring Air Sungai</span>
-                  </h1>
+                  <h3 className="fw-bolder">
+                    <span className="text-gradient d-inline">Integrated Microplastic Aquatic Sensor</span>
+                  </h3>
                   <div className="container my-4">
                     <div className="row justify-content-center">
-                      <div className="col-md-9">
-                        <p className="fs-5 text-muted text-justify">
-                          EMAS mendeteksi mikroplastik di sungai dengan sensor pintar dan analisis data,
-                          mendukung kebijakan lingkungan serta menjaga keberlanjutan ekosistem air.
+                      <div className="col-12 col-md-9">
+                        <p className="fs-6 text-muted text-sm-justify text-md-center" style={{ fontSize: "14px", fontFamily: "Roboto, sans-serif" }}>
+                          IMAS adalah sensor inovatif yang mendeteksi dan memantau keberadaan mikroplastik di perairan untuk mendukung riset lingkungan serta pengelolaan kualitas air.
                         </p>
                       </div>
                     </div>
@@ -117,40 +160,46 @@ function Home() {
                         url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
                       />
                       <LocationMarker />
+
+                      {savelokasi.map((item) => (
+                        <Marker
+                          key={item.id}
+                          position={[parseFloat(item.latitude), parseFloat(item.longitude)]}
+                        >
+                          <Popup>
+                            <strong>📌{item.name}</strong>
+                            <hr />
+                            <span className={`badge ${item.status === 'tercemar' ? 'bg-danger'
+                              : item.status === 'sedikit_tercemar'
+                                ? 'bg-warning text-dark'
+                                : 'bg-success'
+                              }`} style={{ fontSize: '14px' }}>
+                              Status: {item.status === 'tercemar'
+                                ? 'Tercemar'
+                                : item.status === 'sedikit_tercemar'
+                                  ? 'Sedikit Tercemar'
+                                  : 'Tidak Tercemar'}
+                            </span>
+
+                          </Popup>
+                        </Marker>
+                      ))}
                     </MapContainer>
                   </div>
                 </div>
               </div>
+
             </div>
           </div>
         </header>
       </main>
-
-      {/* Footer dan Author */}
-      <section className="bg-light py-5">
-        <div className="container px-5">
-          <div className="row gx-5 justify-content-center">
-            <div className="col-xxl-8">
-              <div className="text-center my-4">
-                <span className="text-uppercase text-secondary small d-block mb-2">
-                  dibuat oleh
-                </span>
-                <p className="lead fw-semibold text-dark mb-1">
-                  Rani Rahayu <span className="mx-2">•</span> Dewi Mustika
-                </p>
-                <p className="fw-light text-muted">SMAN 5 Kediri</p>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
 
       <footer className="bg-white border-top py-4 mt-auto shadow-sm">
         <div className="container px-5">
           <div className="row align-items-center justify-content-between flex-column flex-sm-row">
             <div className="col-auto">
               <div className="small text-muted">
-                © 2025 SMAN 5 Kediri Project. All rights reserved.
+                © 2025 SMAN 5 Kediri Project.
               </div>
             </div>
             <div className="col-auto">
