@@ -7,7 +7,7 @@ import L from 'leaflet';
 import { useForm } from '@inertiajs/react';
 
 export const DefaultIcon = L.icon({
-  iconUrl: `${import.meta.env.BASE_URL}assets/lokasi.png`,
+  iconUrl: 'assets/lokasi.png',
   iconSize: [40, 40], 
   iconAnchor: [20, 40],
 });
@@ -34,7 +34,7 @@ function Home() {
   }, []);
 
   useEffect(() => {
-    axios.get(route('lokasi.index'))
+    axios.get(('/lokasi'))
       .then((lokasisaved) => {
         console.log(lokasisaved.data);
         setSavelokasi(lokasisaved.data);
@@ -101,7 +101,7 @@ function Home() {
       return;
     }
 
-    post(route('save.location'), {
+    post(('/save'), {
       preserveScroll: true,
       onSuccess: () => {
         Swal.fire({
