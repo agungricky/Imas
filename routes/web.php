@@ -11,3 +11,4 @@ Route::get('/', function () {
 
 Route::post('/save', [SavelocationController::class, 'store'])->name('save.location');
 Route::get('/lokasi', [SavelocationController::class, 'index'])->name('lokasi.index');
+Route::get('/reset', [SavelocationController::class, 'reset'])->name('lokasi.reset');

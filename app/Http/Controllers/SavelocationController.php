@@ -37,4 +37,10 @@ class SavelocationController extends Controller
 
         return back()->with('success', 'Location saved successfully.');
     }
+
+    public function reset()
+    {
+        savelocation::truncate();
+        return redirect('/')->with('success', 'All locations have been reset.');
+    }
 }
