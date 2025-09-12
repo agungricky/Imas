@@ -4,7 +4,8 @@ import axios from "axios";
 import { useEffect, useState } from 'react';
 import Swal from 'sweetalert2';
 import L from 'leaflet';
-import { useForm } from '@inertiajs/react';
+import { Link, useForm } from '@inertiajs/react';
+import { route } from 'ziggy-js';
 
 export const DefaultIcon = L.icon({
   iconUrl: 'assets/lokasi.png',
@@ -91,7 +92,8 @@ function Home() {
   }
 
   const handleSave = () => {
-    if (!locationName || !position[0] || !position[1] || !dataSensor.partikel) {
+    console.log(locationName, '+', position[0], '+', position[1], '+', dataSensor.partikel);
+    if (!locationName && !position[0] && !position[1] && !dataSensor.partikel) {
       Swal.fire({
         title: 'Warning!',
         text: 'Data tidak lengkap. Pastikan lokasi dan sensor tersedia.',
@@ -212,6 +214,9 @@ function Home() {
               <a className="small text-decoration-none text-primary" href="#!">
                 Contact
               </a>
+              <Link className="small text-decoration-none text-primary m-3" href={'/reset'}>
+                Reset
+              </Link>
             </div>
           </div>
         </div>

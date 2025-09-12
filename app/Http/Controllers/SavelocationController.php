@@ -25,11 +25,17 @@ class SavelocationController extends Controller
 
         if ($validated['status'] >= 100 && $validated['status'] <= 150) {
             $validated['status'] = 'tercemar';
-        } elseif ($validated['status'] >= 50 && $validated['status'] <= 99) {
+        } 
+        
+        if ($validated['status'] >= 50 && $validated['status'] <= 99) {
             $validated['status'] = 'sedikit_tercemar';
-        } elseif ($validated['status'] = 0 && $validated['status'] <= 49) {
+        } 
+        
+        if ($validated['status'] >= 0 && $validated['status'] <= 49) {
             $validated['status'] = 'tidak_tercemar';
-        } else {
+        } 
+
+        else {
              $validated['status'] = 'tercemar';
         }
 
